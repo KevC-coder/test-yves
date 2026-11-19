@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Examen de 50 preguntas sobre el arte republicano latinoamericano del siglo XIX.">
+  <title>Arte republicano · Examen</title>
+  <link rel="stylesheet" href="./estilos.css">
+  <script src="./preguntas.js" defer></script>
+  <script src="./examen.js" defer></script>
+</head>
+<body>
+  <header class="masthead">
+    <div class="mast-inner">
+      <span class="brand"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8l9-5 9 5v2H3zM5 20h14M3 22h18M7 11v7m5-7v7m5-7v7"/></svg> Historia del arte</span>
+      <span>América Latina · Siglo XIX</span>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="intro" aria-labelledby="titulo">
+      <div class="intro-copy">
+        <h1 id="titulo">Arte republicano</h1>
+        <p>Examen sobre el arte latinoamericano después de la Independencia. Elige una respuesta por pregunta y revisa la corrección al finalizar.</p>
+      </div>
+      <figure>
+        <img src="./patio-colonial.webp" alt="Pintura de un patio porticado, con una estatua ecuestre y figuras bajo los arcos." width="800" height="531">
+      </figure>
+    </section>
+    <noscript><p>Activa JavaScript en tu navegador para responder y evaluar el examen.</p></noscript>
+    <div id="exam" class="layout" hidden>
+      <aside>
+        <details id="navigation" class="panel navigator" open>
+          <summary>Preguntas <span id="nav-count" class="count"></span></summary>
+          <div class="nav-content">
+            <progress id="progress" max="50" value="0" aria-label="Preguntas respondidas"></progress>
+            <div id="nav-grid" class="nav-grid" aria-label="Ir a una pregunta"></div>
+            <p class="nav-key"><span></span> Respondida</p>
+          </div>
+        </details>
+      </aside>
+      <section class="panel question" aria-labelledby="question-title">
+        <div class="question-meta"><span id="question-number"></span><span id="topic"></span></div>
+        <h2 id="question-title" tabindex="-1"></h2>
+        <fieldset id="options"></fieldset>
+        <div class="controls">
+          <button id="previous" class="secondary" type="button">Anterior</button>
+          <button id="next" class="primary" type="button">Siguiente</button>
+          <button id="evaluate" class="primary" type="button" hidden>Evaluar examen</button>
+        </div>
+        <div id="confirm" class="confirm" hidden>
+          <p id="confirm-text" tabindex="-1"></p>
+          <div class="actions">
+            <button id="complete" class="secondary" type="button">Ir a la primera pendiente</button>
+            <button id="confirm-evaluate" class="primary" type="button">Evaluar ahora</button>
+          </div>
+        </div>
+      </section>
+    </div>
+    <section id="results" class="results" aria-labelledby="result-title" hidden>
+      <div class="result-summary">
+        <div>
+          <h2 id="result-title" tabindex="-1">Resultado del examen</h2>
+          <p id="score" class="score"></p>
+          <p id="breakdown"></p>
+        </div>
+        <button id="restart" class="secondary" type="button">Repetir examen</button>
+      </div>
+      <div class="review-head">
+        <h2>Revisión de respuestas</h2>
+        <label for="filter">Mostrar
+          <select id="filter">
+            <option value="all">Todas</option>
+            <option value="missed">Incorrectas y sin responder</option>
+            <option value="correct">Correctas</option>
+          </select>
+        </label>
+      </div>
+      <ol id="review" class="review"></ol>
+      <p id="empty-review" hidden>No hay preguntas con este filtro.</p>
+    </section>
+  </main>
+  <footer class="wrap page-footer">Basado en el material de clase sobre arte republicano post independentista.</footer>
+</body>
+</html>
