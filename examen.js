@@ -2,18 +2,52 @@
 
 const get = (id) => document.getElementById(id);
 const letters = ["A", "B", "C", "D"];
-const storageKey = "arte-republicano-xix/examen-v1";
-const total = QUESTIONS.length;
+const storageKey = "arte-republicano-xix/examen-v2";
+const total = 25;
+const bankIds = QUESTIONS.map((_, index) => index);
 const mobile = window.matchMedia("(max-width: 680px)");
 
-function emptyAttempt() {
-  return { current: 0, answers: Array(total).fill(null), evaluated: false };
+function shuffle(values) {
+  const copy = [...values];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function newAttempt(previous) {
+  let pool = previous?.remaining ?? shuffle(bankIds);
+  if (pool.length === 0) {
+    // Keep the last attempt out of the first draw in the new cycle.
+    const lastIds = new Set(previous.ids);
+    const firstDraw = shuffle(bankIds.filter((id) => !lastIds.has(id))).slice(0, total);
+    const drawnIds = new Set(firstDraw);
+    pool = [...firstDraw, ...shuffle(bankIds.filter((id) => !drawnIds.has(id)))];
+  }
+  return {
+    ids: pool.slice(0, total),
+    remaining: pool.slice(total),
+    current: 0,
+    answers: Array(total).fill(null),
+    evaluated: false,
+  };
+}
+
+function validSelection(saved) {
+  if (!Array.isArray(saved.ids) || saved.ids.length !== total ||
+      !Array.isArray(saved.remaining) || saved.remaining.length % total !== 0) {
+    return false;
+  }
+  const ids = [...saved.ids, ...saved.remaining];
+  return ids.length <= bankIds.length && new Set(ids).size === ids.length &&
+    ids.every((id) => Number.isInteger(id) && id >= 0 && id < bankIds.length);
 }
 
 function loadAttempt() {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey));
-    if (saved && Number.isInteger(saved.current) && saved.current >= 0 &&
+    if (saved && validSelection(saved) && Number.isInteger(saved.current) && saved.current >= 0 &&
         saved.current < total && typeof saved.evaluated === "boolean" &&
         Array.isArray(saved.answers) && saved.answers.length === total &&
         saved.answers.every((value) => value === null ||
@@ -23,7 +57,7 @@ function loadAttempt() {
   } catch {
     // The current attempt remains usable when browser storage is unavailable.
   }
-  return emptyAttempt();
+  return newAttempt();
 }
 
 let attempt = loadAttempt();
@@ -49,7 +83,7 @@ function focusSection(id) {
   heading.scrollIntoView({ block: "nearest" });
 }
 
-const jumpButtons = QUESTIONS.map((_, index) => {
+const jumpButtons = Array.from({ length: total }, (_, index) => {
   const button = element("button", index + 1, "jump");
   button.type = "button";
   button.addEventListener("click", () => {
@@ -80,7 +114,7 @@ function updateProgress() {
 }
 
 function renderQuestion() {
-  const question = QUESTIONS[attempt.current];
+  const question = QUESTIONS[attempt.ids[attempt.current]];
   get("exam").hidden = false;
   get("results").hidden = true;
   get("confirm").hidden = true;
@@ -145,7 +179,7 @@ function requestEvaluation() {
 function resultOf(index) {
   const answer = attempt.answers[index];
   if (answer === null) return "pending";
-  return answer === QUESTIONS[index].correct ? "correct" : "wrong";
+  return answer === QUESTIONS[attempt.ids[index]].correct ? "correct" : "wrong";
 }
 
 function answerLine(label, question, index, className = "") {
@@ -159,7 +193,8 @@ function answerLine(label, question, index, className = "") {
 function renderReview() {
   const filter = get("filter").value;
   const items = [];
-  QUESTIONS.forEach((question, index) => {
+  attempt.ids.forEach((id, index) => {
+    const question = QUESTIONS[id];
     const result = resultOf(index);
     const correct = result === "correct";
     if ((filter === "correct" && !correct) || (filter === "missed" && correct)) return;
@@ -182,7 +217,7 @@ function renderReview() {
 function renderResults() {
   get("exam").hidden = true;
   get("results").hidden = false;
-  const outcomes = QUESTIONS.map((_, index) => resultOf(index));
+  const outcomes = attempt.ids.map((_, index) => resultOf(index));
   const correct = outcomes.filter((result) => result === "correct").length;
   const wrong = outcomes.filter((result) => result === "wrong").length;
   const pending = total - correct - wrong;
@@ -198,12 +233,13 @@ get("confirm-evaluate").addEventListener("click", evaluate);
 get("complete").addEventListener("click", () => goTo(attempt.answers.indexOf(null)));
 get("filter").addEventListener("change", renderReview);
 get("restart").addEventListener("click", () => {
-  attempt = emptyAttempt();
+  attempt = newAttempt(attempt);
   get("filter").value = "all";
   saveAttempt();
   renderQuestion();
   focusSection("question-title");
 });
 
+saveAttempt();
 if (attempt.evaluated) renderResults();
 else renderQuestion();
